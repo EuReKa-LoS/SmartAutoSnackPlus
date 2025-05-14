@@ -3,6 +3,7 @@
 // Utilisation des variables d'environnement
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
+SystemStatus status;
 
 void setup() {
   Serial.begin(115200);
@@ -14,8 +15,13 @@ void setup() {
   }
 
   Serial.println("Connected to WiFi");
+  // Init
+  initCapteurNiveau();
+  initLeds();
 }
 
 void loop() {
-  // Ton code ici
+  updateNiveauCroquette(status);
+  updateLeds(status);
+  delay(100);  // Anti-bounce a upgrade
 }
