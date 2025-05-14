@@ -1,16 +1,15 @@
 #include "leds.h"
-
-#define PIN_LED_ROUGE D6  // À adapter selon ton câblage
+#include <Arduino.h>
 
 void initLeds() {
-    pinMode(PIN_LED_ROUGE, OUTPUT);
-    digitalWrite(PIN_LED_ROUGE, LOW);
+    pinMode(LED_BUILTIN, OUTPUT);  // Exemple pour LED intégrée
 }
 
 void updateLeds(const SystemStatus &status) {
-    if (status.niveauCroquette == CROQ_CRITIQUE) {
-        digitalWrite(PIN_LED_ROUGE, HIGH);  // Allume la LED rouge
+    // Mise à jour de l'état de la LED selon le niveau de croquettes
+    if (status.niveauCroquette == CROQ_OK) {
+        digitalWrite(LED_BUILTIN, LOW);  // LED verte allumée
     } else {
-        digitalWrite(PIN_LED_ROUGE, LOW);   // Éteint la LED rouge
+        digitalWrite(LED_BUILTIN, HIGH);  // LED rouge allumée
     }
 }

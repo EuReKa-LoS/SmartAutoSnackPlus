@@ -1,13 +1,13 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-// État du niveau de croquettes
+// Enumération pour les niveaux de croquettes
 enum CroquetteLevel {
     CROQ_OK,
     CROQ_CRITIQUE
 };
 
-// Structure centrale des états système
+// Structure des états du système
 struct SystemStatus {
     CroquetteLevel niveauCroquette;
     bool wifiConnected;

@@ -3,6 +3,7 @@
 
 #include "status.h"
 
+// Déclaration des fonctions
 void initLeds();
 void updateLeds(const SystemStatus &status);
 

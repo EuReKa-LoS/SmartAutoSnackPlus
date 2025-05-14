@@ -1,17 +1,18 @@
 #include "capteur_niveau.h"
+#include <Arduino.h>  // Inclure pour les fonctions delay() et Serial
 
-#define PIN_CAPTEUR_NIVEAU D5  // À adapter selon ton câblage
-
+// Définition des fonctions
 void initCapteurNiveau() {
-    pinMode(PIN_CAPTEUR_NIVEAU, INPUT_PULLUP);  // Assumes switch to GND when low
+    pinMode(D2, INPUT);  // Exemple de pin, à ajuster selon ton matériel
 }
 
 void updateNiveauCroquette(SystemStatus &status) {
-    bool niveauBas = digitalRead(PIN_CAPTEUR_NIVEAU) == LOW;
-
-    if (niveauBas) {
-        status.niveauCroquette = CROQ_CRITIQUE;
-    } else {
+    int niveau = digitalRead(D2);  // Lire l'état du capteur de croquettes
+    
+    // Mise à jour du niveau de croquettes
+    if (niveau == HIGH) {
         status.niveauCroquette = CROQ_OK;
+    } else {
+        status.niveauCroquette = CROQ_CRITIQUE;
     }
 }
