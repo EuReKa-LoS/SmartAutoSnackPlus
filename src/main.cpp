@@ -2,32 +2,37 @@
 #include "status.h"
 #include "capteur_niveau.h"
 #include "leds.h"
+#include "moteur.h"
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
-
 SystemStatus status;
+Moteur moteur(D1); // Pin relais moteur, à adapter
 
 void setup() {
-    Serial.begin(115200);
-    WiFi.begin(ssid, password);
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Connected to WiFi");
 
-    Serial.println("Connected to WiFi");
-    
-    // Initialisation des capteurs et LEDs
-    initCapteurNiveau();
-    initLeds();
+  initCapteurNiveau();
+  initLeds();
+  moteur.init();
 }
 
 void loop() {
-    // Mise à jour du niveau des croquettes et de l'état des LEDs
-    updateNiveauCroquette(status);
-    updateLeds(status);
+  updateNiveauCroquette(status);
+  updateLeds(status);
+  moteur.update();
 
-    delay(100);  // Anti-bounce
+  // Exemple simple : lancer distribution 2 secondes dès que le moteur est à l'arrêt
+  if (!moteur.estEnCours()) {
+    moteur.startDistribution(2000);
+  }
+
+  delay(100);
 }
