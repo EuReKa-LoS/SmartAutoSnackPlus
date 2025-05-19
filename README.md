@@ -14,16 +14,16 @@ Todo:
 ## Configuration
 
 Matériel:
--ESP8266 WIFI USB-C (NodeMCU 0.9 (ESP-12 Module))
+- ESP8266 WIFI USB-C (NodeMCU 0.9 (ESP-12 Module))
 Pilote:
--KY-019 5V un canal relais Module
+- KY-019 5V un canal relais Module
 Régulateur:
--LM2596 convertisseur Buck DC à DC 3.0-40V
--AMS1117 1.2V 1.5V 1.8V 3.3V 5V
+- LM2596 convertisseur Buck DC à DC 3.0-40V
+- AMS1117 1.2V 1.5V 1.8V 3.3V 5V
 Alimentation:
--Carte PD/QC/AFC prise en charge 5V 9V 12V 15V 20V en USB-C
+- Carte PD/QC/AFC prise en charge 5V 9V 12V 15V 20V en USB-C
 Capteur:
--MicroSwitch (Endstop imprimante 3D quelconque).
+- MicroSwitch (Endstop imprimante 3D quelconque).
 
 Fichier 3D:
 

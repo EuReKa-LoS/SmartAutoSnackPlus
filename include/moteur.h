@@ -5,7 +5,7 @@
 
 class Moteur {
 public:
-  Moteur(uint8_t pinRelais);
+  Moteur();
 
   void init();
   void startDistribution(unsigned long duree_ms);
@@ -18,7 +18,8 @@ public:
   bool estEnCours() const;
 
 private:
-  uint8_t _pinRelais;
+  static const uint8_t RELAIS_PIN = D5;  // <-- Définition centralisée ici
+
   bool _enDistribution = false;
   unsigned long _debutDistribution = 0;
   unsigned long _dureeDistribution = 0;
