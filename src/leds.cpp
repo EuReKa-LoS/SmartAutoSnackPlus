@@ -46,3 +46,36 @@ void testLeds() {
   delay(1000);
   digitalWrite(PIN_LED_VERT, LOW);
 }
+// Gestion des LEDs pour l'état du Wifi.
+// Bleu clignotant lent recherche wifi
+// Bleu fixe connecté
+// Alternance bleu/rouge absence du réseau wifi.
+void updateWifiLed(const SystemStatus& status) {
+  static unsigned long lastToggle = 0;
+  static bool ledState = false;
+  unsigned long now = millis();
+
+  if (status.inResetMode) {
+    // Clignotement rapide BLEU/ROUGE
+    if (now - lastToggle > 200) {
+      //Serial.println("[WiFi LED] Mode reset actif");
+      lastToggle = now;
+      ledState = !ledState;
+      digitalWrite(PIN_LED_BLEU, ledState);
+      digitalWrite(PIN_LED_ROUGE, !ledState);
+    }
+  } else if (status.wifiConnected) {
+    //Serial.println("[WiFi LED] Connecté au Wi-Fi");
+    digitalWrite(PIN_LED_BLEU, HIGH);
+    digitalWrite(PIN_LED_ROUGE, LOW);
+  } else {
+    // Clignotement lent BLEU seul
+    if (now - lastToggle > 1000) {
+      //Serial.println("[WiFi LED] Connexion Wi-Fi en cours...");
+      lastToggle = now;
+      ledState = !ledState;
+      digitalWrite(PIN_LED_BLEU, ledState);
+      digitalWrite(PIN_LED_ROUGE, LOW);
+    }
+  }
+}

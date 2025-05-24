@@ -3,10 +3,8 @@
 #include "capteur_niveau.h"
 #include "leds.h"
 #include "moteur.h"
+#include "wifi_manager.h"
 
-// Utilisation des variables d'environnement (PlatformIO build_flags)
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PASSWORD;
 
 SystemStatus status;
 Moteur moteur;  // Utilisation du constructeur par défaut
@@ -14,27 +12,26 @@ Moteur moteur;  // Utilisation du constructeur par défaut
 unsigned long lastDistribution = 0;
 
 void setup() {
-  Serial.begin(115200);
-  WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected to WiFi");
+  Serial.begin(115200);
+  Serial.println("Initialisation SmartAutoSnackPlus...");
+  initWiFi();
 
   initCapteurNiveau();
   initLeds();
   moteur.init();
 
-  testLeds();
+  //testLeds();
 }
 
 void loop() {
+  //Serial.print("Boucle principale en cours...\n");
   unsigned long now = millis();
-
+  updateWiFiStatus(status);
   updateNiveauCroquette(status);
   updateLeds(status);
+  updateWifiLed(status);
+
 
   if (!moteur.estEnCours() && (now - lastDistribution > 10000)) {
     moteur.startDistribution(3000);  // Distribue pendant 3 secondes
@@ -44,4 +41,5 @@ void loop() {
   moteur.update();
 
   delay(100);
+  
 }

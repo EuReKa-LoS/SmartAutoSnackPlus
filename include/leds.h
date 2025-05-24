@@ -12,5 +12,8 @@
 void initLeds();
 void updateLeds(const SystemStatus &status);
 void testLeds();
+// Gestion des LEDs pour l'état du Wifi.
+void updateWifiLed(const SystemStatus& status);
+
 
 #endif
