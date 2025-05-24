@@ -14,6 +14,7 @@ unsigned long lastDistribution = 0;
 void setup() {
 
   Serial.begin(115200);
+  delay(10000);
   Serial.println("Initialisation SmartAutoSnackPlus...");
   initWiFi();
 
