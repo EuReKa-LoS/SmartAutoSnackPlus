@@ -1,51 +1,30 @@
 #include "wifi_manager.h"
+#include "settings_storage.h"
 #include <LittleFS.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
 // Constantes tirées des variables d'environnement
 // Utilisation des variables d'environnement (PlatformIO build_flags)
-const char* ssid = WIFI_SSID;
+// Legacy keep for debuging pursposes only, as we are using a custom WiFiManager class now
+/*const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASS;
-WiFiManagerCustom wifi_manager;
-
-// Legacy keep for debuging pursposes
-// Commented out to avoid confusion, as we are using a custom WiFiManager class now
-// This function is not used anymore, but can be uncommented if needed for debugging
-/*
 void initWiFi() {
   WiFi.begin(ssid, password);
   Serial.print("Tentative de connexion à : ");
   Serial.print(ssid);
 }*/
+WiFiManagerCustom wifi_manager;
 
-void WiFiManagerCustom::connectToWiFi() {
-  if (!LittleFS.exists("/wifi.json")) {
-    Serial.println("Fichier /wifi.json introuvable !");
-    return;
-  }
+const WiFiCredentials& WiFiManagerCustom::getCredentials() const {
+  return currentCredentials;
+}
 
-  File file = LittleFS.open("/wifi.json", "r");
-  if (!file) {
-    Serial.println("Erreur lors de l'ouverture de /wifi.json");
-    return;
-  }
+void WiFiManagerCustom::connectToWiFi(const WiFiCredentials &creds) {
+  Serial.printf("🔌 Tentative de connexion à : %s\n", creds.ssid.c_str());
 
-  StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, file);
-  file.close();
-
-  if (error) {
-    Serial.println("Erreur lors de la lecture du JSON");
-    return;
-  }
-
-  const char* ssid = doc["ssid"];
-  const char* password = doc["password"];
-
-  Serial.printf("Tentative de connexion à : %s\n", ssid);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
 
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
@@ -55,11 +34,11 @@ void WiFiManagerCustom::connectToWiFi() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConnexion Wi-Fi réussie !");
+    Serial.println("\n✅ Connexion Wi-Fi réussie !");
     Serial.print("Adresse IP : ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\nÉchec de connexion Wi-Fi");
+    Serial.println("\n❌ Échec de connexion Wi-Fi");
   }
 }
 
@@ -122,10 +101,10 @@ void WiFiManagerCustom::startAccessPoint() {
       }
 
       serializeJson(doc, file);
+      currentCredentials = WiFiCredentials{ doc["ssid"].as<String>(), doc["password"].as<String>() };
       file.close();
       Serial.println("✅ Données Wi-Fi enregistrées dans /wifi.json");
-
-      // ✅ Basculer hors du mode config
+      // Basculer hors du mode config
       inConfigMode = false;
 
       server.send(200, "application/json", "{\"message\":\"Données enregistrées !\"}");
@@ -151,14 +130,29 @@ void WiFiManagerCustom::setDebugMode(bool debug) {
 }
 
 void WiFiManagerCustom::begin() {
-  if (debugMode) {
-    Serial.println("Mode configuration forcé activé (debug)");
-    startAccessPoint();
+  if (!LittleFS.begin()) {
+    Serial.println("❌ Échec du montage LittleFS");
     inConfigMode = true;
-  } else {
-    connectToWiFi();
-    inConfigMode = false;
+    startAccessPoint();
+    return;
   }
+  Serial.println("✅ LittleFS monté avec succès");
+
+  currentCredentials = loadWiFiCredentials();
+
+  if (!currentCredentials.isValid()) {
+  Serial.println("ℹ️ Données Wi-Fi invalides ou absentes, passage en mode configuration");
+  inConfigMode = true;
+  startAccessPoint();
+  return;
+}
+
+Serial.println("📶 Données Wi-Fi lues :");
+Serial.println("  SSID : " + currentCredentials.ssid);
+Serial.println("  Mot de passe : " + currentCredentials.password);
+
+inConfigMode = false;
+connectToWiFi(currentCredentials);
 }
 
 
@@ -171,24 +165,32 @@ void updateWiFiStatus(SystemStatus &status) {
 
   if (wifiState == WL_CONNECTED) {
     if (!status.wifiConnected) {
-      Serial.println("\nWi-Fi connecté !");
+      Serial.println("\n✅ Wi-Fi connecté !");
       Serial.print("IP locale : ");
       Serial.println(WiFi.localIP());
     }
     status.wifiConnected = true;
   } else {
     status.wifiConnected = false;
+
     if (now - lastPrint > 1000) {
       Serial.print(".");
       lastPrint = now;
     }
-    // Relancer la connexion toutes les 10 secondes si déconnecté
+
     if (now - lastReconnectAttempt > 10000) {
-      Serial.println("\nTentative reconnexion Wi-Fi...");
-      WiFi.disconnect();  // On se déconnecte proprement avant de relancer
-      WiFi.begin(ssid, password);
+      Serial.println("\n🔄 Tentative de reconnexion Wi-Fi...");
+
+      const WiFiCredentials &creds = wifi_manager.getCredentials();
+
+      if (creds.isValid()) {
+        WiFi.disconnect();
+        WiFi.begin(creds.ssid.c_str(), creds.password.c_str());
+      } else {
+        Serial.println("❌ Pas d'identifiants Wi-Fi valides pour se reconnecter.");
+      }
+
       lastReconnectAttempt = now;
     }
   }
 }
-

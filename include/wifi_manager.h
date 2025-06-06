@@ -3,6 +3,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include "settings_storage.h"
 #include "status.h"
 
 //Legcy keep for debuging purposes
@@ -17,16 +18,17 @@ public:
     void setDebugMode(bool debug); // Force le mode config pour debug
     void handleClient();
     bool isInConfigMode() const { return inConfigMode; }  // Ou une variable dédiée
+    const WiFiCredentials& getCredentials() const;
 
 private:
+    WiFiCredentials currentCredentials;
     bool debugMode = false;
     bool inConfigMode = false;
     void startAccessPoint();      // Mode config via AP
-    void connectToWiFi();         // Mode station
+    void connectToWiFi(const WiFiCredentials &creds);
+
     ESP8266WebServer server = ESP8266WebServer(80); // Serveur HTTP sur le port 80
 };
-
 extern WiFiManagerCustom wifi_manager;
-
 
 #endif
